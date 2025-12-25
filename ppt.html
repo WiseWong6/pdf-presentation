@@ -8,7 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Oswald:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         :root {
@@ -29,6 +28,24 @@
         }
         body.modal-open {
             overflow: hidden;
+        }
+        body.fullscreen-mode {
+            background: #000;
+            overflow: hidden;
+        }
+        body.fullscreen-mode .deck {
+            padding: 0;
+            gap: 0;
+            height: 100vh;
+            overflow-y: auto;
+            scroll-snap-type: y mandatory;
+        }
+        body.fullscreen-mode .swiss-card {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            box-shadow: none;
+            scroll-snap-align: start;
         }
 
         h1, h2, h3, .serif {
@@ -304,8 +321,8 @@
         </filter>
     </svg>
 
-    <button class="download-btn no-print" onclick="downloadSlides()">
-        <i class="fas fa-download mr-2"></i> DOWNLOAD SLIDES (PNG)
+    <button class="download-btn no-print" onclick="toggleFullscreen()" id="fullscreenBtn">
+        <i class="fas fa-expand mr-2"></i> 全屏
     </button>
 
     <div class="deck">
@@ -544,13 +561,13 @@
                             <div class="oswald text-4xl mb-4">v1.0</div>
                             <div class="h-1 bg-black/10 mb-4"></div>
                             <h4 class="font-bold mb-2">本地模型 (87%)</h4>
-                            <p class="text-sm text-gray-500">解决基础 OCR，但复杂表格破碎严重。</p>
+                            <p class="text-sm text-gray-500">解决基础 OCR，但精度不足。</p>
                         </div>
                         <div class="w-1/4 pr-8 relative">
                             <div class="oswald text-4xl mb-4">v2.0</div>
                             <div class="h-1 bg-black/10 mb-4"></div>
                             <h4 class="font-bold mb-2">付费 OCR (94%)</h4>
-                            <p class="text-sm text-gray-500">文字准度提升，但缺乏业务逻辑理解。</p>
+                            <p class="text-sm text-gray-500">文字准度提升，但无法解决孤立文本、跨页表格问题。</p>
                         </div>
                         <div class="w-1/4 pr-8 relative">
                             <div class="oswald text-4xl mb-4 text-accent">v3.0</div>
@@ -576,7 +593,7 @@
             <div class="grid-system">
                 <div class="col-span-12 mb-12">
                     <h2 class="text-5xl">竞品对标：困难案例结果对比</h2>
-                    <p class="text-accent font-bold mt-2">
+                    <p class="text-accent ">
                         <a href="https://doc.weixin.qq.com/sheet/e3_ARoATgaqAMQCN7ACQdT2tT0egyYwz" target="_blank" rel="noopener">23 个保险困难用例,<span class="text-blue-600">点击查看 ></span></a>
                     </p>
                 </div>
@@ -617,7 +634,7 @@
             <div class="noise-layer" style="filter: url(#noiseFilter); opacity: 0.1;"></div>
             <div class="grid-system">
                 <div class="col-span-12 mb-10">
-                    <h2 class="text-5xl border-l-8 border-accent pl-6">ROI 分析：业务决策的关键依据</h2>
+                    <h2 class="text-5xl border-l-8 border-accent pl-6">ROI 分析：在保单托管的真实数据</h2>
                 </div>
                 <div class="col-span-6 flex flex-col justify-center border-r border-white/10 pr-10">
                     <div class="mb-12">
@@ -648,7 +665,7 @@
             <div class="noise-layer" style="filter: url(#noiseFilter);"></div>
             <div class="grid-system items-center">
                 <div class="col-span-12 text-center">
-                    <h2 class="text-7xl mb-12">构建保险数据资产的<br><span class="text-accent underline underline-offset-8">第一步</span></h2>
+                    <h2 class="text-7xl mb-12 leading-[1.3]">构建保险数据资产的<br><span class="text-accent underline underline-offset-8">第一步</span></h2>
                     <div class="flex justify-center gap-12 mt-20">
                         <div class="text-left w-64">
                             <h4 class="oswald font-bold border-b border-black mb-4">25Q4 ROADMAP</h4>
@@ -679,31 +696,29 @@
     </div>
 
     <script>
-        async function downloadSlides() {
-            const btn = document.querySelector('.download-btn');
-            btn.innerText = "Generating...";
-            btn.disabled = true;
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-            await document.fonts.ready;
-            const slides = document.querySelectorAll('.swiss-card');
-            
-            for (let i = 0; i < slides.length; i++) {
-                const canvas = await html2canvas(slides[i], {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    backgroundColor: null
-                });
-                
-                const link = document.createElement('a');
-                link.download = `Slide-${(i + 1).toString().padStart(2, '0')}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+        const updateFullscreenLabel = () => {
+            if (!fullscreenBtn) return;
+            if (document.fullscreenElement) {
+                document.body.classList.add('fullscreen-mode');
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress mr-2"></i> 退出全屏';
+            } else {
+                document.body.classList.remove('fullscreen-mode');
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand mr-2"></i> 全屏';
             }
+        };
 
-            btn.innerText = "DOWNLOAD SLIDES (PNG)";
-            btn.disabled = false;
+        function toggleFullscreen() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                document.documentElement.requestFullscreen();
+            }
         }
+
+        document.addEventListener('fullscreenchange', updateFullscreenLabel);
+        updateFullscreenLabel();
 
         const exampleOverlay = document.getElementById('exampleOverlay');
         const exampleImage = exampleOverlay?.querySelector('.example-image');
