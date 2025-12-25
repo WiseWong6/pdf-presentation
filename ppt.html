@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>保险PDF精准解析系统汇报 - Swiss Editorial Style</title>
+    <!-- Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Oswald:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --bg-paper: #f2efe9;
+            --text-ink: #1a1a1a;
+            --accent-hermes: #d95e00;
+            --desktop-base: #e5e2dc;
+        }
+
+        /* Base Typography */
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: var(--desktop-base);
+            color: var(--text-ink);
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        h1, h2, h3, .serif {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        .oswald { font-family: 'Oswald', sans-serif; }
+
+        /* Deck Container */
+        .deck {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 48px;
+            padding: 48px 0 96px;
+        }
+
+        /* Swiss Card Core */
+        .swiss-card {
+            width: 1280px;
+            height: 720px;
+            background-color: var(--bg-paper);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-radius: 0 !important; /* Hard constraint */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        /* Dark Slide Variant */
+        .swiss-card.dark {
+            background-color: var(--text-ink);
+            color: var(--bg-paper);
+        }
+
+        /* Noise Overlay */
+        .noise-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.07;
+            mix-blend-mode: multiply;
+            z-index: 50;
+        }
+
+        /* Layout Utilities */
+        .grid-system {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            height: 100%;
+            width: 100%;
+            padding: 60px;
+        }
+
+        .border-accent { border-color: var(--accent-hermes); }
+        .text-accent { color: var(--accent-hermes); }
+        .bg-accent { background-color: var(--accent-hermes); }
+
+        /* Components */
+        .corner-index {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Oswald';
+            font-size: 14px;
+            letter-spacing: 2px;
+            opacity: 0.5;
+        }
+
+        .tag-line {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            opacity: 0.4;
+        }
+
+        .big-stat {
+            font-size: 120px;
+            line-height: 1;
+            font-family: 'Oswald';
+            font-weight: 600;
+        }
+
+        .vs-line {
+            width: 1px;
+            height: 100%;
+            background-color: var(--text-ink);
+            opacity: 0.2;
+        }
+
+        /* UI Buttons */
+        .download-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--text-ink);
+            color: white;
+            padding: 12px 24px;
+            font-weight: bold;
+            z-index: 100;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .download-btn:hover { background: var(--accent-hermes); }
+
+        /* Document Reconstruction (Slide 02) */
+        .doc-page {
+            width: 980px;
+            height: 600px;
+            background: #fff;
+            color: #111;
+            border: 2px solid #111;
+            box-shadow: 0 14px 30px rgba(0,0,0,0.12);
+            padding: 32px 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 12.5px;
+            line-height: 1.5;
+        }
+        .doc-header {
+            font-size: 12px;
+            line-height: 1.6;
+            letter-spacing: 0.1px;
+        }
+        .doc-section-title {
+            display: grid;
+            grid-template-columns: 36px 1fr;
+            gap: 14px;
+            align-items: center;
+            margin-top: 6px;
+        }
+        .doc-section-mark {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: #111;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .doc-section-name {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .doc-section-desc {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .doc-divider {
+            border-bottom: 2px solid #111;
+            margin: 6px 0 2px;
+        }
+        .doc-row {
+            display: grid;
+            grid-template-columns: 70px 120px 1fr;
+            gap: 12px;
+            align-items: start;
+            padding: 4px 0;
+        }
+        .doc-num {
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .doc-subtitle {
+            font-weight: 600;
+        }
+        .doc-highlight {
+            background: #dcdcdc;
+            padding: 6px 8px;
+            display: block;
+        }
+        .doc-note {
+            margin-top: 6px;
+        }
+
+        .point-image {
+            width: 100%;
+            height: 88px;
+            object-fit: contain;
+            margin-top: 10px;
+            border: 1px solid rgba(0,0,0,0.12);
+            background: #fff;
+        }
+        .example-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        .example-overlay.is-active {
+            display: flex;
+        }
+        .example-modal {
+            position: relative;
+            background: #fff;
+            padding: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            max-width: 1000px;
+            max-height: 560px;
+        }
+        .example-image {
+            max-width: 960px;
+            max-height: 520px;
+            display: block;
+        }
+        .example-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            border: none;
+            background: #000;
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 28px;
+        }
+
+        /* Print Hardened Reset */
+        @page { size: 1280px 720px; margin: 0; }
+        @media print {
+            html, body {
+                width: 1280px !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: none !important;
+                display: block !important;
+                overflow: visible !important;
+            }
+            .deck {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                gap: 0 !important;
+            }
+            .swiss-card {
+                width: 1280px !important;
+                height: 720px !important;
+                margin: 0 !important;
+                break-after: page;
+                page-break-after: always;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            .no-print { display: none !important; }
+            * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+    <svg style="display:none;">
+        <filter id="noiseFilter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch"/>
+        </filter>
+    </svg>
+
+    <button class="download-btn no-print" onclick="downloadSlides()">
+        <i class="fas fa-download mr-2"></i> DOWNLOAD SLIDES (PNG)
+    </button>
+
+    <div class="deck">
+
+        <!-- SLIDE 01: COVER -->
+        <section class="swiss-card">
+            <div class="noise-layer" style="filter: url(#noiseFilter);"></div>
+            <div class="grid-system items-center">
+                <div class="col-start-1 col-end-10">
+                    <div class="mb-8 w-24 h-2 bg-accent"></div>
+                    <h1 class="text-7xl mb-6">保险PDF精准解析：<br><span class="text-accent">从非结构化文本到可信数据</span></h1>
+                    <br>
+                    <p class="text-2xl font-light opacity-70 serif">基于 “规则驱动 + 多模态大模型” 的AI解析方案</p>
+                </div>
+                <div class="col-start-1 col-end-13 mt-20 pt-10 border-t border-black/10 flex justify-between items-end">
+                    <div class="oswald uppercase tracking-widest text-sm">
+                        Report by: Zale / Wise<br>
+                        Confidential © 2024
+                    </div>
+                    <div class="text-right serif italic text-xl">
+                        "Turning the black box into structured intelligence."
+                    </div>
+                </div>
+            </div>
+            <div class="corner-index">01 / 10</div>
+        </section>
+
+        <!-- SLIDE 02: BUSINESS CONTEXT -->
+        <section class="swiss-card">
+            <div class="noise-layer" style="filter: url(#noiseFilter);"></div>
+            <div class="grid-system">
+                <div class="col-start-1 col-end-5 pr-10 border-r border-black/10">
+                    <h2 class="text-4xl mb-12">选题背景：<br>为什么是PDF解析</h2>
+                    <div class="p-6 bg-accent text-white mt-20">
+                        <p class="text-lg">不仅是效率及成本问题，更是 <b>数据质量与业务可用</b> 的问题。</p>
+                    </div>
+                </div>
+                <div class="col-start-6 col-end-13 flex flex-col justify-between py-10">
+                        <div class="flex gap-8 mb-12">
+                            <div class="text-accent text-4xl oswald font-bold">01</div>
+                            <div class="flex-1">
+                                <h3 class="text-2xl mb-2">结构复杂</h3>
+                                <p class="text-gray-600">传统OCR无法覆盖保险PDF复杂结构、表格、孤立文本及噪声问题。</p>
+                                <a href="#" class="text-blue-600 mt-2 inline-block example-link" data-image="结构复杂.png">查看示例 &gt;</a>
+                            </div>
+                        </div>
+                        <div class="flex gap-8 mb-12">
+                            <div class="text-accent text-4xl oswald font-bold">02</div>
+                            <div class="flex-1">
+                                <h3 class="text-2xl mb-2">容错率低</h3>
+                                <p class="text-gray-600">OCR 识别错误导致乱序，解析结果直接不可用，耗时且无效。</p>
+                                <a href="#" class="text-blue-600 mt-2 inline-block example-link" data-image="ocr错位.png">查看示例 &gt;</a>
+                            </div>
+                        </div>
+                    <div class="flex gap-8">
+                        <div class="text-accent text-4xl oswald font-bold">03</div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl mb-2">人工成本高</h3>
+                            <p class="text-gray-600">单人日均仅能处理 30 份，4万份要5.5年，但手回已服务380万+用户</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="corner-index">02 / 10</div>
+        </section>
+
+        <!-- SLIDE 03: GOALS (Grid-3) -->
+        <section class="swiss-card">
+            <div class="noise-layer" style="filter: url(#noiseFilter);"></div>
+            <div class="grid-system">
+                <div class="col-span-12 mb-16">
+                    <h2 class="text-5xl border-l-8 border-accent pl-6">目标设定：保险行业PDF的垂直识别工具</h2>
+                    <p class="mt-4 text-xl opacity-60">不是“能解析”，而是“完整”、“准确”</p>
+                </div>
+                <div class="col-span-12 grid grid-cols-3 gap-12">
+                    <div class="border border-black p-8 flex flex-col justify-between">
+                        <div class="oswald text-sm tracking-widest uppercase opacity-50">Accuracy</div>
+                        <div>
+                            <div class="big-stat text-accent">90<span class="text-4xl">%+</span></div>
+                            <p class="mt-4 font-bold">识别准确率</p>
+                            <p class="text-sm text-gray-500">对标 上海人工智能实验室 MinerU 识别模型</p>
+                        </div>
+                    </div>
+                    <div class="border border-black p-8 flex flex-col justify-between">
+                        <div class="oswald text-sm tracking-widest uppercase opacity-50">INTERGRITY</div>
+                        <div>
+                            <div class="big-stat text-accent">99<span class="text-4xl">%</span></div>
+                            <p class="mt-4 font-bold">识别完整性</p>
+                            <p class="text-sm text-gray-500">避免文本丢失、数据遗漏</p>
+                        </div>
+                    </div>
+                    <div class="border border-black p-8 flex flex-col justify-between">
+                        <div class="oswald text-sm tracking-widest uppercase opacity-50">Cost Efficiency</div>
+                        <div>
+                            <div class="big-stat text-accent">-50<span class="text-4xl">%</span></div>
+                            <p class="mt-4 font-bold">综合成本优化</p>
+                            <p class="text-sm text-gray-500">通过自动化管线大幅度削减人工校验支出</p>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+            <div class="corner-index">03 / 10</div>
+        </section>
+
+        <!-- SLIDE 04: CHALLENGES (Split-V) -->
+        <section class="swiss-card">
+            <div class="noise-layer" style="filter: url(#noiseFilter);"></div>
+            <div class="grid-system">
+                <div class="col-start-1 col-end-7 flex flex-col justify-center">
+                    <h2 class="text-6xl mb-8">技术挑战：<br>通用OCR的缺陷</h2>
+                    <div class="w-20 h-1 bg-accent mb-8"></div>
+                    <p class="text-xl serif opacity-80 leading-relaxed">
+                        不懂保险的“潜规则”<br>
+                        当视觉排版与语义逻辑冲突<br>
+                        往往选择视觉，而非保险语义
+                    </p>
+                </div>
+                <div class="col-start-8 col-end-13 grid grid-cols-1 gap-4">
+                    <div class="bg-white p-6 border-l-4 border-black">
+                        <div class="flex items-baseline gap-3">
+                            <span class="oswald text-accent">01</span>
+                            <h4 class="font-bold">假表格陷阱</h4>
+                        </div>
+                        <p class="text-xs text-gray-500">左右结构像表格，实为文本列表，误判导致识别错误。</p>
+                        <a href="#" class="text-blue-600 text-xs mt-2 inline-block example-link" data-image="结构复杂.png">查看示例 &gt;</a>
+                    </div>
+                    <div class="bg-white p-6 border-l-4 border-black">
+                        <div class="flex items-baseline gap-3">
+                            <span class="oswald text-accent">02</span>
+                            <h4 class="font-bold">跨页断裂</h4>
+                        </div>
+                        <p class="text-xs text-gray-500">长表格、文本跨页后，缺乏特征，容易丢失或误识别。</p>
+                        <a href="#" class="text-blue-600 text-xs mt-2 inline-block example-link" data-image="正文误识别为页眉.png">查看示例 &gt;</a>
+                    </div>
+                    <div class="bg-white p-6 border-l-4 border-black">
+                        <div class="flex items-baseline gap-3">
+                            <span class="oswald text-accent">03</span>
+                            <h4 class="font-bold">噪声干扰</h4>
+                        </div>
+                        <p class="text-xs text-gray-500">页眉页脚、脚注，OCR难以判定是否属于正文，极易加入正文污染数据。</p>
+                        <a href="#" class="text-blue-600 text-xs mt-2 inline-block example-link" data-image="注释噪声.png">查看示例 &gt;</a>
+                    </div>
+                    <div class="bg-white p-6 border-l-4 border-black">
+                        <div class="flex items-baseline gap-3">
+                            <span class="oswald text-accent">04</span>
+                            <h4 class="font-bold">微观分裂</h4>
+                        </div>
+                        <p class="text-xs text-gray-500">术语角标（如 pTx）与注释相似，极易被过滤，专业含义丧失。</p>
+                        <a href="#" class="text-blue-600 text-xs mt-2 inline-block example-link" data-image="latex语法.png">查看示例 &gt;</a>
+                    </div>
+                </div>
+            </div>
+            <div class="corner-index">04 / 10</div>
+        </section>
+
+        <!-- SLIDE 05: IMPACT (DARK SLIDE) -->
+        <section class="swiss-card dark">
+            <div class="noise-layer" style="filter: url(#noiseFilter); opacity: 0.1;"></div>
+            <div class="flex flex-col items-center justify-center h-full text-center">
+                <div class="oswald tracking-[0.5em] text-accent mb-12">DESIGN PHILOSOPHY</div>
+                <h2 class="text-7xl serif mb-12 italic leading-tight">规则先行<br>模型服从</h2>
+                <div class="w-1/2 h-[1px] bg-white/20 mb-12"></div>
+                <div class="flex gap-20">
+                    <div class="text-left">
+                        <div class="oswald text-accent text-2xl">零</div>
+                        <div class="text-xl">幻觉 (Hallucination)</div>
+                    </div>
+                    <div class="text-left">
+                        <div class="oswald text-accent text-2xl">零</div>
+                        <div class="text-xl">丢失 (Data Loss)</div>
+                    </div>
+                    <div class="text-left">
+                        <div class="oswald text-accent text-2xl">语义</div>
+                        <div class="text-xl">优先 (Structure First)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="corner-index">05 / 10</div>
+        </section>
+
+        <!-- SLIDE 06: SOLUTION (R-Type) -->
+        <section class="swiss-card">
+            <div class="noise-layer" style="filter: url(#noiseFilter);"></div>
+            <div class="grid-system">
+                <div class="col-start-1 col-end-8 flex flex-col justify-center gap-6">
+                    <div class="relative border-2 border-black p-10">
+                        <div class="absolute -top-4 left-6 bg-accent text-white px-4 py-1 oswald text-sm">LAYOUT ROUTER</div>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold">1</div>
+                                <div class="font-bold">PDF加工: 强制增加页眉线</div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold">2</div>
+                                <div class="font-bold">Camelot 视觉扫描：定位是否有衬线表格</div>
+                            </div>
+                            <div class="ml-12 border-l-2 border-dashed border-black/20 pl-6 space-y-4">
+                                <div class="bg-gray-100 p-3">
+                                    <span class="text-accent font-bold">Path A:</span> 有表格 → Deepseek OCR → HTML Table 结构处理表格难题
+                                </div>
+                                <div class="bg-gray-100 p-3">
+                                    <span class="text-accent font-bold">Path B:</span> 无表格 → Qwen-VL + 坐标+语义+提示词重建文本&处理噪声
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold">3</div>
+                                <div class="font-bold">LLM: 文本+责任 Json 提取</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-start-9 col-end-13 flex flex-col justify-center">
+                    <h2 class="text-4xl mb-6">解决方案：<br>智能分流<a href="http://192.168.103.243:5003/pdf2md" target="_blank" rel="noopener" class="text-blue-600">（点击体验）</a></h2>
+                    <p class="text-gray-500 mb-8">不让模型“自由发挥”，通过表格解析+分流模型+提示词工程强制其遵循物理版式约束。</p>
+                    <ul class="space-y-3 text-sm font-bold">
+                        <li><i class="fas fa-check text-accent mr-2"></i> 页面分类 (Page Classification)</li>
+                        <li><i class="fas fa-check text-accent mr-2"></i> 坐标聚合 (Coordinate Aggregation)</li> 
+                        <li><i class="fas fa-check text-accent mr-2"></i> 语义还原 (Semantic Reconstruction)</li>
+                        <li><i class="fas fa-check text-accent mr-2"></i> 视觉仲裁 (Visual Arbitration)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="corner-index">06 / 10</div>
+        </section>
+
+        <!-- SLIDE 07: EVOLUTION -->
+        <section class="swiss-card">
+            <div class="noise-layer" style="filter: url(#noiseFilter);"></div>
+            <div class="grid-system">
+                <div class="col-span-12 flex flex-col justify-center">
+                    <h2 class="text-5xl mb-16">实战演进：准确率爬坡之路</h2>
+                    <div class="flex items-start justify-between">
+                        <div class="w-1/4 pr-8 relative">
+                            <div class="oswald text-4xl mb-4">v1.0</div>
+                            <div class="h-1 bg-black/10 mb-4"></div>
+                            <h4 class="font-bold mb-2">本地模型 (87%)</h4>
+                            <p class="text-sm text-gray-500">解决基础 OCR，但复杂表格破碎严重。</p>
+                        </div>
+                        <div class="w-1/4 pr-8 relative">
+                            <div class="oswald text-4xl mb-4">v2.0</div>
+                            <div class="h-1 bg-black/10 mb-4"></div>
+                            <h4 class="font-bold mb-2">付费 OCR (94%)</h4>
+                            <p class="text-sm text-gray-500">文字准度提升，但缺乏业务逻辑理解。</p>
+                        </div>
+                        <div class="w-1/4 pr-8 relative">
+                            <div class="oswald text-4xl mb-4 text-accent">v3.0</div>
+                            <div class="h-2 bg-accent mb-4"></div>
+                            <h4 class="font-bold mb-2">模型增强 (98%)</h4>
+                            <p class="text-sm text-gray-500 font-bold text-black">引入DeepSeek OCR模型，大幅提高表格识别准确率</p>
+                        </div>
+                        <div class="w-1/4 relative">
+                            <div class="oswald text-4xl mb-4 opacity-30">v4.0</div>
+                            <div class="h-1 bg-black/10 mb-4"></div>
+                            <h4 class="font-bold mb-2">规则增强</h4>
+                            <p class="text-sm text-gray-500">基于表格分流，非表格页引入坐标+提示词还原，攻克假表格、孤立文本。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="corner-index">07 / 10</div>
+        </section>
+
+        <!-- SLIDE 08: BENCHMARK -->
+        <section class="swiss-card">
+            <div class="noise-layer" style="filter: url(#noiseFilter);"></div>
+            <div class="grid-system">
+                <div class="col-span-12 mb-12">
+                    <h2 class="text-5xl">竞品对标：困难案例结果对比</h2>
+                    <p class="text-accent font-bold mt-2">
+                        <a href="https://doc.weixin.qq.com/sheet/e3_ARoATgaqAMQCN7ACQdT2tT0egyYwz" target="_blank" rel="noopener">23 个保险困难用例,<span class="text-blue-600">点击查看 ></span></a>
+                    </p>
+                </div>
+                <div class="col-span-12">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b-4 border-black">
+                                <th class="py-4 text-2xl serif">指标 / 模型</th>
+                                <th class="py-4 text-2xl serif opacity-40">MinerU (通用SOTA)</th>
+                                <th class="py-4 text-2xl serif text-accent">手回 (垂直保险)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xl">
+                            <tr class="border-b border-black/10">
+                                <td class="py-6">成功解析数量</td>
+                                <td class="py-6 oswald opacity-40">07</td>
+                                <td class="py-6 oswald text-accent font-bold">16</td>
+                            </tr>
+                            <tr class="border-b border-black/10">
+                                <td class="py-6">失败/结构崩坏用例</td>
+                                <td class="py-6 oswald opacity-40">15</td>
+                                <td class="py-6 oswald text-accent font-bold">07</td>
+                            </tr>
+                            <tr class="bg-accent/5">
+                                <td class="py-8 font-black">综合成功率 (Success Rate)</td>
+                                <td class="py-8 oswald opacity-40">34.7%</td>
+                                <td class="py-8 oswald text-accent text-5xl font-black">69.5%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="corner-index">08 / 10</div>
+        </section>
+
+        <!-- SLIDE 09: ROI (DARK) -->
+        <section class="swiss-card dark">
+            <div class="noise-layer" style="filter: url(#noiseFilter); opacity: 0.1;"></div>
+            <div class="grid-system">
+                <div class="col-span-12 mb-10">
+                    <h2 class="text-5xl border-l-8 border-accent pl-6">ROI 分析：业务决策的关键依据</h2>
+                </div>
+                <div class="col-span-6 flex flex-col justify-center border-r border-white/10 pr-10">
+                    <div class="mb-12">
+                        <div class="oswald text-accent text-sm tracking-widest uppercase mb-4">Financial Impact</div>
+                        <div class="flex items-end gap-4">
+                            <div class="text-8xl oswald font-bold">90<span class="text-4xl">%</span></div>
+                            <div class="text-xl mb-4 serif italic">Cost Reduction</div>
+                        </div>
+                        <p class="text-gray-400 mt-4">从人工 20w 降至 AI 算力 2w 成本。</p>
+                    </div>
+                </div>
+                <div class="col-span-6 flex flex-col justify-center pl-10">
+                    <div class="mb-12">
+                        <div class="oswald text-accent text-sm tracking-widest uppercase mb-4">Efficiency Boost</div>
+                        <div class="flex items-end gap-4">
+                            <div class="text-8xl oswald font-bold">20<span class="text-4xl">倍</span></div>
+                            <div class="text-xl mb-4 serif italic">Processing Speed</div>
+                        </div>
+                        <p class="text-gray-400 mt-4">从 5.5 年（单人人工）降至 3 个月（系统）。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="corner-index">09 / 10</div>
+        </section>
+
+        <!-- SLIDE 10: OUTRO -->
+        <section class="swiss-card">
+            <div class="noise-layer" style="filter: url(#noiseFilter);"></div>
+            <div class="grid-system items-center">
+                <div class="col-span-12 text-center">
+                    <h2 class="text-7xl mb-12">构建保险数据资产的<br><span class="text-accent underline underline-offset-8">第一步</span></h2>
+                    <div class="flex justify-center gap-12 mt-20">
+                        <div class="text-left w-64">
+                            <h4 class="oswald font-bold border-b border-black mb-4">25Q4 ROADMAP</h4>
+                            <p class="text-sm text-gray-500">1）标准化知识上传、切片、召回能力<br>2）兼容 Word、Txt、表格等解析模式<br>3）支持知识库基础质检</p>
+                        </div>
+                        <div class="text-left w-64">
+                            <h4 class="oswald font-bold border-b border-black mb-4">26Q1 ROADMAP</h4>
+                            <p class="text-sm text-gray-500">1）标准化召回、重排能力<br>2）完善知识库质检看板</p>
+                        </div>
+                        <div class="text-left w-64">
+                            <h4 class="oswald font-bold border-b border-black mb-4">LONG-TERM</h4>
+                            <p class="text-sm text-gray-500">构建垂直领域的保险 RAG 知识库。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tag-line oswald uppercase tracking-[0.3em]">Thank You for Your Attention</div>
+            <div class="corner-index">10 / 10</div>
+        </section>
+
+    </div>
+
+    <div class="example-overlay no-print" id="exampleOverlay">
+        <div class="example-modal">
+            <button class="example-close" type="button" aria-label="关闭">×</button>
+            <img class="example-image" src="" alt="示例图片">
+        </div>
+    </div>
+
+    <script>
+        async function downloadSlides() {
+            const btn = document.querySelector('.download-btn');
+            btn.innerText = "Generating...";
+            btn.disabled = true;
+
+            await document.fonts.ready;
+            const slides = document.querySelectorAll('.swiss-card');
+            
+            for (let i = 0; i < slides.length; i++) {
+                const canvas = await html2canvas(slides[i], {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: null
+                });
+                
+                const link = document.createElement('a');
+                link.download = `Slide-${(i + 1).toString().padStart(2, '0')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+
+            btn.innerText = "DOWNLOAD SLIDES (PNG)";
+            btn.disabled = false;
+        }
+
+        const exampleOverlay = document.getElementById('exampleOverlay');
+        const exampleImage = exampleOverlay?.querySelector('.example-image');
+        const exampleClose = exampleOverlay?.querySelector('.example-close');
+
+        const closeExample = () => {
+            if (!exampleOverlay || !exampleImage) return;
+            exampleOverlay.classList.remove('is-active');
+            exampleImage.src = '';
+            document.body.classList.remove('modal-open');
+        };
+
+        document.querySelectorAll('.example-link').forEach((link) => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                if (!exampleOverlay || !exampleImage) return;
+                exampleImage.src = link.getAttribute('data-image') || '';
+                exampleOverlay.classList.add('is-active');
+                document.body.classList.add('modal-open');
+            });
+        });
+
+        exampleClose?.addEventListener('click', closeExample);
+        exampleOverlay?.addEventListener('click', (event) => {
+            if (event.target === exampleOverlay) closeExample();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && exampleOverlay?.classList.contains('is-active')) {
+                closeExample();
+            }
+        });
+    </script>
+</body>
+</html>
