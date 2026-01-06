@@ -333,9 +333,9 @@
             <div class="grid-system items-center">
                 <div class="col-start-1 col-end-10">
                     <div class="mb-8 w-24 h-2 bg-accent"></div>
-                    <h1 class="text-7xl mb-6">保险PDF精准解析：<br><span class="text-accent">从非结构化文本到可信数据</span></h1>
+                    <h1 class="text-7xl mb-6 leading-[1.25]">保险PDF精准高效解析<br><span class="text-accent">从非结构化文本到可信数据</span></h1>
                     <br>
-                    <p class="text-2xl font-light opacity-70 serif">基于 “规则驱动 + 多模态大模型” 的AI解析方案</p>
+                    <p class="text-2xl font-light opacity-70 serif">基于 “决策树 + 多模态大模型” 的AI工程化方案</p>
                 </div>
                 <div class="col-start-1 col-end-13 mt-20 pt-10 border-t border-black/10 flex justify-between items-end">
                     <div class="oswald uppercase tracking-widest text-sm">
@@ -437,9 +437,9 @@
                     <h2 class="text-6xl mb-8">技术挑战：<br>通用OCR的缺陷</h2>
                     <div class="w-20 h-1 bg-accent mb-8"></div>
                     <p class="text-xl serif opacity-80 leading-relaxed">
-                        不懂保险的“潜规则”<br>
-                        当视觉排版与语义逻辑冲突<br>
-                        往往选择视觉，而非保险语义
+                        LLM判别文本类型，耗时长，约30-40秒<br>
+                        多路OCR，汇总判别结果，每份30-40页，耗时、成本极高<br>
+                        不懂保险的“潜规则”，倾向视觉，而非语义<br>
                     </p>
                 </div>
                 <div class="col-start-8 col-end-13 grid grid-cols-1 gap-4">
@@ -485,12 +485,12 @@
             <div class="noise-layer" style="filter: url(#noiseFilter); opacity: 0.1;"></div>
             <div class="flex flex-col items-center justify-center h-full text-center">
                 <div class="oswald tracking-[0.5em] text-accent mb-12">DESIGN PHILOSOPHY</div>
-                <h2 class="text-7xl serif mb-12 italic leading-tight">规则先行<br>模型服从</h2>
+                <h2 class="text-7xl serif mb-12 italic leading-tight">小模型判别<br>大模型服从</h2>
                 <div class="w-1/2 h-[1px] bg-white/20 mb-12"></div>
                 <div class="flex gap-20">
                     <div class="text-left">
-                        <div class="oswald text-accent text-2xl">零</div>
-                        <div class="text-xl">幻觉 (Hallucination)</div>
+                        <div class="oswald text-accent text-2xl">高</div>
+                        <div class="text-xl">性能 (High Performance)</div>
                     </div>
                     <div class="text-left">
                         <div class="oswald text-accent text-2xl">零</div>
@@ -555,19 +555,19 @@
             <div class="noise-layer" style="filter: url(#noiseFilter);"></div>
             <div class="grid-system">
                 <div class="col-span-12 flex flex-col justify-center">
-                    <h2 class="text-5xl mb-16">实战演进：准确率爬坡之路</h2>
+                    <h2 class="text-5xl mb-16">实战演进：保险条款责任准确率爬坡之路</h2>
                     <div class="flex items-start justify-between">
                         <div class="w-1/4 pr-8 relative">
                             <div class="oswald text-4xl mb-4">v1.0</div>
                             <div class="h-1 bg-black/10 mb-4"></div>
-                            <h4 class="font-bold mb-2">本地模型 (87%)</h4>
+                            <h4 class="font-bold mb-2">Miner U 本地模型 (84%)</h4>
                             <p class="text-sm text-gray-500">解决基础 OCR，但精度不足。</p>
                         </div>
                         <div class="w-1/4 pr-8 relative">
                             <div class="oswald text-4xl mb-4">v2.0</div>
                             <div class="h-1 bg-black/10 mb-4"></div>
-                            <h4 class="font-bold mb-2">付费 OCR (94%)</h4>
-                            <p class="text-sm text-gray-500">文字准度提升，但无法解决孤立文本、跨页表格问题。</p>
+                            <h4 class="font-bold mb-2">Qwen-VL 付费OCR (94%)</h4>
+                            <p class="text-sm text-gray-500">文字准度提升，但无法解决孤立文本、跨页/合并表格问题。</p>
                         </div>
                         <div class="w-1/4 pr-8 relative">
                             <div class="oswald text-4xl mb-4 text-accent">v3.0</div>
@@ -578,7 +578,7 @@
                         <div class="w-1/4 relative">
                             <div class="oswald text-4xl mb-4 opacity-30">v4.0</div>
                             <div class="h-1 bg-black/10 mb-4"></div>
-                            <h4 class="font-bold mb-2">规则增强</h4>
+                            <h4 class="font-bold mb-2">分流强化</h4>
                             <p class="text-sm text-gray-500">基于表格分流，非表格页引入坐标+提示词还原，攻克假表格、孤立文本。</p>
                         </div>
                     </div>
